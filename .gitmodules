@@ -1,0 +1,6 @@
+[submodule "dotvim"]
+	path = dotvim
+	url = https://github.com/kingavatar/dotvim
+[submodule "nvim-config"]
+	path = nvim-config
+	url = https://github.com/kingavatar/nvim-config
