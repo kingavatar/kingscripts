@@ -1,0 +1,79 @@
+format = """
+$username\
+$hostname\
+$shlvl\
+$kubernetes\
+$directory\
+$git_branch\
+$git_commit\
+${custom.git_last_commit}\
+$git_state\
+$git_status\
+$hg_branch\
+$package\
+$cmake\
+$dart\
+$dotnet\
+$elixir\
+$elm\
+$erlang\
+$golang\
+$helm\
+$java\
+$julia\
+$kotlin\
+$nim\
+$nodejs\
+$ocaml\
+$perl\
+$php\
+$purescript\
+$python\
+$ruby\
+$rust\
+$swift\
+$terraform\
+$vagrant\
+$zig\
+$nix_shell\
+$conda\
+$docker_context\
+$memory_usage\
+$aws\
+$gcloud\
+$openstack\
+$env_var\
+$crystal\
+$custom\
+$cmd_duration\
+$line_break\
+$lua\
+$jobs\
+$battery\
+$character"""
+
+[nodejs]
+format = "via [$symbol$version ](bold green)"
+
+[custom.docker]
+symbol = "🐳 "
+files = ["Dockerfile", "docker-compose.yml", "docker-compose.yaml"]
+command='docker version -f "{{.Server.Version}}" 2>/dev/null'
+style="bold cyan"
+when = """ command -v docker &> /dev/null; exit (echo $?); """
+format="on [$symbol($output )]($style)"
+
+[cmd_duration]
+min_time = 500
+format = "[took](bold) [$duration](bold yellow) "
+
+[custom.git_last_commit]
+command ="git log --pretty='format:%s|%cr' 'HEAD^..HEAD' 2>/dev/null | head -n 1"
+when="""[[ $(command git rev-parse --is-inside-work-tree 2>/dev/null) == true && ! -z $(git log --pretty='format:%s|%cr' 'HEAD^..HEAD' 2>/dev/null | head -n 1) ]]"""
+style="bold purple"
+format='\([$output]($style)\) '
+
+[custom.ssh]
+symbol=" "
+style="bold 202"
+when="""[[ -n "$SSH_CONNECTION" ]] || [[ -n "$SSH_TTY" ]]"""

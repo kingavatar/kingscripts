@@ -53,13 +53,23 @@ alias grep='grep --color=auto'
 alias fgrep='fgrep --color=auto'
 alias egrep='egrep --color=auto'
 alias mkdir='mkdir -pv'
+alias reblue='sudo systemctl restart bluetooth.service'
 D=$HOME/Downloads
+alias -g ...=../..
+alias -g ....=../../..
 alias -g G="| grep"
 alias -g H='sed 11q'
 alias -g L="less -R"
 alias -g T="tail"
 alias -g NE="2> /dev/null"
 alias -g NUL="> /dev/null"
+
+#
+# Bind Keys
+#
+bindkey  "^[[H"   beginning-of-line
+bindkey  "^[[F"   end-of-line
+bindkey  "^[[3~"  delete-char
 
 #
 # Functions
@@ -98,6 +108,11 @@ export ANDROID_HOME=$HOME/Android/Sdk
 export PATH=$PATH:$ANDROID_HOME/tools
 export PATH=$PATH:$ANDROID_HOME/platform-tools
 export PATH="$PATH:/home/saikiran/tools/flutter/bin"
+export PATH="$PATH:/home/saikiran/.cargo/bin"
+
+export JAVA_HOME=/home/saikiran/.jdks/openjdk-15.0.2
+export PATH="$PATH:/home/saikiran/.jdks/openjdk-15.0.2/bin"
+
 
 if [[ ! -f ~/.zinit/bin/zinit.zsh ]]; then
     print -P "%F{33}▓▒░ %F{220}Installing DHARMA Initiative Plugin Manager (zdharma/zinit)…%f"
@@ -119,11 +134,10 @@ unset ZMOD
 
 setopt promptsubst
 
-zinit ice depth'1'
-zinit light denysdovhan/spaceship-prompt
-source $HOME/tools/kingify/spaceship/last-commit.zsh
-source $HOME/tools/kingify/spaceship/spacessh.zsh
-source $HOME/tools/kingify/spaceship/spaceconfig.zsh
+zinit ice lucid as"command" from"gh-r" bpick"*x86_64-unknown-linux-gnu*" pick"starship"  src'/home/saikiran/tools/kingify/starship_prompt' 
+zinit light starship/starship
+#zinit ice lucid multisrc'/home/saikiran/tools/kingify/spaceship/*.zsh'
+#zinit light denysdovhan/spaceship-prompt
 # zinit ice pick'spacezsh.zsh' \
 #    compile'{presets/^(*.zwc),lib/**/^(*.zwc),sections/^(*.zwc)}'
 # zinit light laggardkernel/spacezsh-prompt
@@ -140,7 +154,7 @@ export ZSH_AUTOSUGGEST_USE_ASYNC=1
 export ZSH_AUTOSUGGEST_MANUAL_REBIND=1
 export ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE="fg=242"
 
-zinit ice wait blockf lucid atpull'zinit creinstall -q .'
+zinit ice wait blockf lucid atpull'zinit creinstall -q .' atload"zicompinit; zicdreplay"
 zinit load zsh-users/zsh-completions
 
 zinit ice wait lucid atinit'ZINIT[COMPINIT_OPTS]=-C;zicompinit; zicdreplay'
@@ -175,11 +189,18 @@ zinit light lainiwa/gitcd
 export GITCD_HOME=${HOME}/tools
 export GITCD_TRIM=1
 
+# Alias Tips
+zinit ice wait"0b" lucid
+zinit light djui/alias-tips
+
 zinit ice depth'3' lucid trigger-load'!x'
 zinit snippet OMZ::plugins/extract/extract.plugin.zsh
 
 zinit ice lucid trigger-load'!ga;!gcf;!gclean;!gd;!glo;!grh;!gss'
 zinit light wfxr/forgit
+
+zinit ice wait"2" lucid trigger-load'!gi;!gii'
+zinit load voronkovich/gitignore.plugin.zsh
 
 # Don't bind these keys until ready
 bindkey -r '^[[A'
@@ -194,6 +215,8 @@ zinit light zsh-users/zsh-history-substring-search
 
 zplugin ice wait"0" lucid
 zinit load zdharma/history-search-multi-word
+
+zinit light zinit-zsh/z-a-readurl
 
 zinit ice wait"0c" lucid
 export NVM_LAZY_LOAD=true
