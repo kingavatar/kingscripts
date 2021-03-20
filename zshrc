@@ -54,6 +54,9 @@ alias fgrep='fgrep --color=auto'
 alias egrep='egrep --color=auto'
 alias mkdir='mkdir -pv'
 alias reblue='sudo systemctl restart bluetooth.service'
+alias setclip="xclip -selection c"
+alias getclip="xclip -selection c -o"
+
 D=$HOME/Downloads
 alias -g ...=../..
 alias -g ....=../../..
@@ -110,7 +113,7 @@ export PATH=$PATH:$ANDROID_HOME/platform-tools
 export PATH="$PATH:/home/saikiran/tools/flutter/bin"
 export PATH="$PATH:/home/saikiran/.cargo/bin"
 
-export JAVA_HOME=/home/saikiran/.jdks/openjdk-15.0.2
+#export JAVA_HOME=/home/saikiran/.jdks/openjdk-15.0.2
 export PATH="$PATH:/home/saikiran/.jdks/openjdk-15.0.2/bin"
 
 

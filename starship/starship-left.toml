@@ -86,6 +86,12 @@ style="bold purple"
 format='\([$output]($style)\) '
 
 [custom.ssh]
-symbol=" "
+symbol=" "
 style="bold 202"
 when="""[[ -n "$SSH_CONNECTION" ]] || [[ -n "$SSH_TTY" ]]"""
+
+[custom.tmux]
+symbol=" "
+style="bold 202"
+command="tmux display-message -p '#S  #W #I  #T #P'"
+when="""[ "$TERM" = "screen-256color" ] && [ -n "$TMUX" ]"""
