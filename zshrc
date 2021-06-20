@@ -56,6 +56,7 @@ alias mkdir='mkdir -pv'
 alias reblue='sudo systemctl restart bluetooth.service'
 alias setclip="xclip -selection c"
 alias getclip="xclip -selection c -o"
+alias gsb='git branch | fzf | xargs git switch'
 
 D=$HOME/Downloads
 alias -g ...=../..
@@ -74,13 +75,31 @@ bindkey  "^[[H"   beginning-of-line
 bindkey  "^[[F"   end-of-line
 bindkey  "^[[3~"  delete-char
 
+[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+
 #
 # Functions
 #
 mkcd() { mkdir -p "$@" && cd "$@"; }
 
-[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+function in() {
+    yay -Slq | fzf -q "$1" -m --preview 'yay -Si {1}'| xargs -ro yay -S
+}
 
+function re() {
+    yay -Qq | fzf -q "$1" -m --preview 'yay -Qi {1}' | xargs -ro yay -Rns
+}
+
+export FZF_DEFAULT_COMMAND='fd --type f --hidden --follow --exclude .git'
+export FZF_PREVIEW_COMMAND="bat --style=numbers,changes --wrap never --color always --line-range :500 {} || cat {} || tree -C {}"
+export FZF_CTRL_T_OPTS="--min-height 30  --preview-window right:60%  --preview '($FZF_PREVIEW_COMMAND) 2> /dev/null'"
+export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
+export FZF_ALT_C_COMMAND="fd -t d . $HOME"
+#
+# Variables
+#
+
+pchf="$HOME/tools/kingify/zinit/patches"
 
 
 zstyle ':completion:*' list-colors "${(@s.:.)LS_COLORS}"
@@ -107,9 +126,9 @@ export EDITOR=nvim
 export DE=kde
 export LC_ALL=en_US.UTF-8
 export LANG=en_US.UTF-8
-export ANDROID_HOME=$HOME/Android/Sdk
-export PATH=$PATH:$ANDROID_HOME/tools
-export PATH=$PATH:$ANDROID_HOME/platform-tools
+# export ANDROID_HOME=$HOME/Android/Sdk
+# export PATH=$PATH:$ANDROID_HOME/tools
+# export PATH=$PATH:$ANDROID_HOME/platform-tools
 export PATH="$PATH:/home/saikiran/tools/flutter/bin"
 export PATH="$PATH:/home/saikiran/.cargo/bin"
 
@@ -120,8 +139,8 @@ export PATH="$PATH:/home/saikiran/.jdks/openjdk-15.0.2/bin"
 if [[ ! -f ~/.zinit/bin/zinit.zsh ]]; then
     print -P "%F{33}▓▒░ %F{220}Installing DHARMA Initiative Plugin Manager (zdharma/zinit)…%f"
     command mkdir -p ~/.zinit && command chmod g-rwX ~/.zinit
-    command git clone https://github.com/zdharma/zinit ~/.zinit/bin && \\
-        print -P "%F{33}▓▒░ %F{34}Installation successful.%f" || \\
+    command git clone https://github.com/zdharma/zinit ~/.zinit/bin && \
+        print -P "%F{33}▓▒░ %F{34}Installation successful.%f" || \
         print -P "%F{160}▓▒░ The clone has failed.%f"
 fi
 
@@ -137,7 +156,29 @@ unset ZMOD
 
 setopt promptsubst
 
-zinit ice lucid as"command" from"gh-r" bpick"*x86_64-unknown-linux-gnu*" pick"starship"  src'/home/saikiran/tools/kingify/starship_prompt' 
+# Functions to make configuration less verbose
+# zt() : First argument is a wait time and suffix, ie "0a". 
+# Anything that doesn't match will be passed as if it were an ice mod. 
+# Default ices depth'3' and lucid
+
+zt(){ zinit depth'3' lucid ${1/#[0-9][a-c]/wait"${1}"} "${@:2}"; }
+
+##################
+#    Annexes     #
+##################
+
+zt light-mode for \
+		zinit-zsh/z-a-bin-gem-node \
+		zinit-zsh/z-a-patch-dl \
+		zinit-zsh/z-a-readurl \
+		NICHOLAS85/z-a-linkman \
+        NICHOLAS85/z-a-linkbin
+
+##################
+#     Prompt     #
+##################
+
+zinit ice lucid as"command" from"gh-r" bpick"*x86_64-unknown-linux-gnu*" pick"starship" src'/home/saikiran/tools/kingify/starship_prompt'
 zinit light starship/starship
 #zinit ice lucid multisrc'/home/saikiran/tools/kingify/spaceship/*.zsh'
 #zinit light denysdovhan/spaceship-prompt
@@ -145,65 +186,65 @@ zinit light starship/starship
 #    compile'{presets/^(*.zwc),lib/**/^(*.zwc),sections/^(*.zwc)}'
 # zinit light laggardkernel/spacezsh-prompt
 
+# pack'no-dir-color-swap' atload"zstyle ':completion:*' list-colors \${(s.:.)LS_COLORS}" \
 #zinit ice atclone"dircolors -b LS_COLORS > clrs.zsh" \
 #    atpull'%atclone' pick"clrs.zsh" nocompile'!' \
 #    atload'zstyle ":completion:*" list-colors "${(s.:.)LS_COLORS}"'
 #zinit light trapd00r/LS_COLORS
 
-zinit ice wait lucid atload'!_zsh_autosuggest_start'
-zinit light zsh-users/zsh-autosuggestions
+###########
+# Plugins #
+###########
+
+######################
+# Trigger-load block #
+######################
+
+zt light-mode for \
+    trigger-load'!x' svn \
+        OMZ::plugins/extract \
+    trigger-load'!man' \
+        ael-code/zsh-colored-man-pages \
+    trigger-load'!ga;!grh;!glo;!gd;!gcf;!gclean;!gss;!gcp' \
+        wfxr/forgit \
+	trigger-load'!gi;!gii' \
+		voronkovich/gitignore.plugin.zsh \
+	trigger-load'!zshz;!z' blockf \
+        agkozak/zsh-z \
+    trigger-load'!gitcd' \
+    	'https://github.com/viko16/gitcd.plugin.zsh/blob/master/gitcd.plugin.zsh'
+
+export GITCD_HOME=${HOME}/tools
+
+zinit lucid wait for \
+	as"completion" \
+        OMZP::docker/_docker \
+    atload"
+        alias dcupb='docker-compose up --build'
+    " OMZP::docker-compose \
+    OMZP::colored-man-pages \
+    OMZP::fancy-ctrl-z/fancy-ctrl-z.plugin.zsh
+
+##################
+# Wait'0a' block #
+##################
+
 export ZSH_AUTOSUGGEST_BUFFER_MAX_SIZE=10
 export ZSH_AUTOSUGGEST_USE_ASYNC=1
 export ZSH_AUTOSUGGEST_MANUAL_REBIND=1
 export ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE="fg=242"
 
-zinit ice wait blockf lucid atpull'zinit creinstall -q .' atload"zicompinit; zicdreplay"
-zinit load zsh-users/zsh-completions
 
-zinit ice wait lucid atinit'ZINIT[COMPINIT_OPTS]=-C;zicompinit; zicdreplay'
-zinit light zdharma/fast-syntax-highlighting
+zt 0a light-mode for \
+	ver'develop' atload'_zsh_autosuggest_start' \
+        zsh-users/zsh-autosuggestions \
+    as'completion' atpull'zinit creinstall -q .' \
+    atload"zicompinit; zicdreplay" blockf \
+        zsh-users/zsh-completions
 
-zinit as"program" make'!' atclone'./direnv hook zsh > zhook.zsh' \
-    atpull'%atclone' pick"direnv" src"zhook.zsh" for \
-        direnv/direnv
-
-zinit ice wait"0b" lucid as"command" from"gh-r" as"program"
-zinit load junegunn/fzf-bin
-
-zinit ice wait"0b" blockf lucid
-zinit light rupa/z
-
-zinit ice wait"0a" lucid
-zinit light changyuheng/fz
-
-zinit ice wait"0b" lucid as"command" from"gh-r" mv"ripgrep* -> rg" pick"rg/rg"
-zinit light BurntSushi/ripgrep
-
-# Add `git dsf` command to git
-zplugin ice wait lucid as"program" pick"bin/git-dsf"
-zplugin light zdharma/zsh-diff-so-fancy
-
-# Run `fg` command to return to foregrounded (Ctrl+Z'd) vim
-zinit ice wait"0b" lucid
-zinit light mdumitru/fancy-ctrl-z
-
-zinit ice wait lucid
-zinit light lainiwa/gitcd
-export GITCD_HOME=${HOME}/tools
-export GITCD_TRIM=1
-
-# Alias Tips
-zinit ice wait"0b" lucid
-zinit light djui/alias-tips
-
-zinit ice depth'3' lucid trigger-load'!x'
-zinit snippet OMZ::plugins/extract/extract.plugin.zsh
-
-zinit ice lucid trigger-load'!ga;!gcf;!gclean;!gd;!glo;!grh;!gss'
-zinit light wfxr/forgit
-
-zinit ice wait"2" lucid trigger-load'!gi;!gii'
-zinit load voronkovich/gitignore.plugin.zsh
+##################
+# Wait'0b' block #
+##################
 
 # Don't bind these keys until ready
 bindkey -r '^[[A'
@@ -212,24 +253,97 @@ function __bind_history_keys() {
   bindkey '^[[A' history-substring-search-up
   bindkey '^[[B' history-substring-search-down
 }
-# History substring searching
-zinit ice wait lucid atload'__bind_history_keys'
-zinit light zsh-users/zsh-history-substring-search
 
-zplugin ice wait"0" lucid
-zinit load zdharma/history-search-multi-word
+zt 0b light-mode patch"${pchf}/%PLUGIN%.patch" reset nocompile'!' for \
+	atload'ZSH_AUTOSUGGEST_CLEAR_WIDGETS+=(__fz_zsh_completion);
+	ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE="fg=247"' \
+        changyuheng/fz \
+    atclone"dircolors -b LS_COLORS > clrs.zsh" \
+    atpull'%atclone' pick"clrs.zsh" nocompile'!' \
+    atload'zstyle ":completion:*" list-colors "${(s.:.)LS_COLORS}"' \
+        trapd00r/LS_COLORS \
+    atinit'ZINIT[COMPINIT_OPTS]=-C;zicompinit; zicdreplay' \
+        zdharma/fast-syntax-highlighting \
+    atload'__bind_history_keys' \
+    	zsh-users/zsh-history-substring-search \
+    from"gh-r" mv"ripgrep* -> rg" lbin"rg/rg" \
+    	BurntSushi/ripgrep \
+    	djui/alias-tips
 
-zinit light zinit-zsh/z-a-readurl
+    # compile'h*' \
+    #     zdharma/history-search-multi-word \
 
-zinit ice wait"0c" lucid
+
+##################
+# Wait'0c' block #
+##################
+
+zt 0c light-mode binary from'gh-r' lman lbin for \
+	lbin'direnv'  mv"direnv* -> direnv" \
+	atclone'./direnv hook zsh > zhook.zsh' atpull'%atclone' \
+		direnv/direnv \
+	atclone'mv -f **/*.zsh _bat' atpull'%atclone' \
+        @sharkdp/bat \
+        @sharkdp/hyperfine \
+        @sharkdp/fd
+
+zt 0c light-mode null for \
+	id-as'Cleanup' nocd atinit'unset -f zt; _zsh_autosuggest_bind_widgets' \
+        zdharma/null
+
+# zinit pack"bgn-binary+keys" for fzf
+# zinit from"gh-r" mv"direnv* -> direnv" \
+#     atclone'./direnv hook zsh > zhook.zsh' atpull'%atclone' \
+#     src"zhook.zsh" sbin"direnv" for \
+#         direnv/direnv
+
+
+
+# zinit ice wait"0b" blockf lucid
+# zinit light rupa/z
+
+# zinit ice wait"0b" lucid from"gh-r" mv"ripgrep* -> rg" sbin"rg/rg"
+# zinit light BurntSushi/ripgrep
+
+# Add `git dsf` command to git
+# zplugin ice wait lucid sbin"bin/git-dsf"
+# zplugin light zdharma/zsh-diff-so-fancy
+
+
+zinit as"null" wait"1" lucid for \
+	patch"${pchf}/%PLUGIN%.patch" \
+	lbin"bin/git-dsf;!diff-so-fancy/diff-so-fancy" \
+			zdharma/zsh-diff-so-fancy
+	
+
+
+# Run `fg` command to return to foregrounded (Ctrl+Z'd) vim
+# zinit ice wait"0b" lucid
+# zinit light mdumitru/fancy-ctrl-z
+
+# Alias Tips
+# zinit ice wait"0b" lucid
+# zinit light djui/alias-tips
+# zinit ice lucid trigger-load'!ga;!gcf;!gclean;!gd;!glo;!grh;!gss'
+# zinit light wfxr/forgit
+
+# zinit ice wait"2" lucid trigger-load'!gi;!gii'
+# zinit load voronkovich/gitignore.plugin.zsh
+
+export NVM_COMPLETION=true
 export NVM_LAZY_LOAD=true
-zinit load lukechilds/zsh-nvm
+export NVM_AUTO_USE=true
+export NVM_NO_USE=false
+export NVM_LAZY_LOAD_EXTRA_COMMANDS=('vim' 'nvim')
+zinit ice wait"0c" lucid
+zinit light lukechilds/zsh-nvm
 
-nvim () {
-    unset -f nvim
-    _zsh_nvm_load
-    nvim "$@"
-}
+# nvim () {
+#     unset -f nvim
+#     _zsh_nvm_load
+#     nvim "$@"
+# }
+
 
 zplugin ice as"completion"
 zplugin snippet https://github.com/esc/conda-zsh-completion/blob/master/_conda
@@ -239,7 +353,7 @@ autoload -U compinit && compinit
 
 # >>> conda initialize >>>
 # !! Contents within this block are managed by 'conda init' !!
- __conda_setup="$('/home/saikiran/tools/miniconda/bin/conda' 'shell.zsh' 'hook' 2> /dev/null)"
+__conda_setup="$('/home/saikiran/tools/miniconda/bin/conda' 'shell.zsh' 'hook' 2> /dev/null)"
 if [ $? -eq 0 ]; then
     eval "$__conda_setup"
 else
@@ -251,4 +365,5 @@ else
 fi
 unset __conda_setup
 # <<< conda initialize <<<
+
 

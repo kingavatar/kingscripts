@@ -63,6 +63,8 @@ style = "bold red"
 threshold = 30
 style = "bold yellow"
 
+[conda]
+format = "[$symbol$environment ](bold green) "
 
 [nodejs]
 format = "via $symbol[$version ](bold green)"
